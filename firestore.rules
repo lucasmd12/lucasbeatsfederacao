@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regras para usuários
+    match /usuarios/{userId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Regras para clãs
+    match /clans/{clanId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        (resource == null || resource.data.lider == request.auth.uid);
+    }
+    
+    // Regras para mensagens
+    match /mensagens/{messageId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Regras para chamadas
+    match /chamadas/{callId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
