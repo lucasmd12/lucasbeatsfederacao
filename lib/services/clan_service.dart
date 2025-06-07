@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/clan_model.dart';
 import '../services/logger_service.dart';
+import '../models/chat_channel_model.dart';
 
 class ClanService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Logger _logger = Logger();
 
-  Future<List<Clan>> getUserClans(String userId) async {
+  Future<List<ClanModel>> getUserClans(String userId) async {
     try {
       final snapshot = await _firestore
           .collection('clans')
@@ -14,7 +15,7 @@ class ClanService {
           .get();
 
       return snapshot.docs
-          .map((doc) => Clan.fromMap({...doc.data(), 'id': doc.id}))
+          .map((doc) => ClanModel.fromDocument(doc))
           .toList();
     } catch (e) {
       _logger.logError('Error getting user clans: $e');
@@ -22,11 +23,11 @@ class ClanService {
     }
   }
 
-  Future<Clan?> getClan(String clanId) async {
+  Future<ClanModel?> getClan(String clanId) async {
     try {
       final doc = await _firestore.collection('clans').doc(clanId).get();
       if (doc.exists) {
-        return Clan.fromMap({...doc.data()!, 'id': doc.id});
+        return ClanModel.fromDocument(doc);
       } else {
         return null;
       }
@@ -36,9 +37,9 @@ class ClanService {
     }
   }
 
-  Future<bool> createClan(Clan clan) async {
+  Future<bool> createClan(ClanModel clan) async {
     try {
-      await _firestore.collection('clans').doc(clan.id).set(clan.toMap());
+      await _firestore.collection('clans').doc(clan.id).set(clan.toJson());
       return true;
     } catch (e) {
       _logger.logError('Error creating clan: $e');
@@ -69,15 +70,12 @@ class ClanService {
       return false;
     }
   }
-}
 
-
-
-  Future<List<Clan>> getAllClans() async {
+  Future<List<ClanModel>> getAllClans() async {
     try {
       final snapshot = await _firestore.collection("clans").get();
       return snapshot.docs
-          .map((doc) => Clan.fromMap({...doc.data(), 'id': doc.id}))
+          .map((doc) => ClanModel.fromDocument(doc))
           .toList();
     } catch (e) {
       _logger.logError("Error getting all clans: $e");
@@ -85,9 +83,9 @@ class ClanService {
     }
   }
 
-  Future<bool> updateClan(Clan clan) async {
+  Future<bool> updateClan(ClanModel clan) async {
     try {
-      await _firestore.collection("clans").doc(clan.id).update(clan.toMap());
+      await _firestore.collection("clans").doc(clan.id).update(clan.toJson());
       return true;
     } catch (e) {
       _logger.logError("Error updating clan: $e");
@@ -105,7 +103,7 @@ class ClanService {
     }
   }
 
-  Future<List<Clan>> searchClans(String query) async {
+  Future<List<ClanModel>> searchClans(String query) async {
     try {
       final snapshot = await _firestore
           .collection("clans")
@@ -113,14 +111,12 @@ class ClanService {
           .where("name", isLessThanOrEqualTo: query + '\uf8ff')
           .get();
       return snapshot.docs
-          .map((doc) => Clan.fromMap({...doc.data(), 'id': doc.id}))
+          .map((doc) => ClanModel.fromDocument(doc))
           .toList();
     } catch (e) {
       _logger.logError("Error searching clans: $e");
       return [];
     }
   }
-
-
-import '../models/chat_channel_model.dart';
+}
 

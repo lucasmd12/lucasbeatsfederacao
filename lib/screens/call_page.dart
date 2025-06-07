@@ -1,36 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/call_provider.dart';
 
-class CallPage extends StatelessWidget {
+class CallPage extends ConsumerWidget {
   const CallPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // TODO: Implement Call UI using CallProvider
-    // - Show contact name/avatar
-    // - Show call status (calling, connected, etc.)
-    // - Buttons: Mute, Speaker, End Call
+  Widget build(BuildContext context, WidgetRef ref) {
+    final callProvider = ref.watch(callProviderNotifier);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Chamada em Andamento')),
+      appBar: AppBar(
+        title: Text(callProvider.currentChannel?.name ?? 'Chamada em Andamento'),
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images_png/voice_channel_placeholder.jpg',
-              height: 200, // Adjust size as needed
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.mic_off, // Fallback icon
-                size: 100,
-                color: Colors.grey,
-              ),
+            // Exibir participantes
+            if (callProvider.participants.isNotEmpty)
+              ...callProvider.participants.map((user) => Text(user.name)),
+            
+            // Placeholder para vídeo local/remoto (se houver)
+            if (callProvider.localStream != null)
+              // TODO: Implementar widget para exibir o vídeo local
+              const Text('Vídeo Local (implementar)'),
+            if (callProvider.remoteStream != null)
+              // TODO: Implementar widget para exibir o vídeo remoto
+              const Text('Vídeo Remoto (implementar)'),
+
+            const SizedBox(height: 20),
+            Text(
+              callProvider.isInCall
+                  ? 'Conectado ao canal de voz'
+                  : 'Não conectado',
+              style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 20),
-            const Text('Implementar UI da chamada aqui'),
-            // TODO: Add call controls (Mute, Speaker, End Call)
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  icon: Icon(callProvider.isMuted ? Icons.mic_off : Icons.mic),
+                  onPressed: () {
+                    callProvider.toggleMute();
+                  },
+                ),
+                IconButton(
+                  icon: Icon(callProvider.isCameraOff ? Icons.videocam_off : Icons.videocam),
+                  onPressed: () {
+                    callProvider.toggleCamera();
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.call_end, color: Colors.red),
+                  onPressed: () {
+                    callProvider.leaveVoiceChannel();
+                    Navigator.of(context).pop(); // Voltar para a tela anterior
+                  },
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 }
+
 
